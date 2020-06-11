@@ -123,8 +123,8 @@ function GetControls(props)
     for i=1, output_count do
          table.insert(ctls, {
             Name = "output_"..i,
-            ControlType = "Indicator",
-            IndicatorType = "Text",
+            ControlType = "Text",
+            --IndicatorType = "Text",
             PinStyle = "Both",
             UserPin = true
         })
@@ -345,7 +345,7 @@ function GetControlLayout(props)
             Position = {btn_size[1] + (i * btn_size[1]), 192},
             Size = btn_size
         }
-        for s=1, input_count do
+        for s=1, input_count do -- For each input
             layout["input_".. s .. "-output_" .. i] = {
                 PrettyName = "Output " .. i .. "~In".. s .. " -> Out" .. i,
                 Style = "Button",
@@ -367,6 +367,51 @@ function GetControlLayout(props)
     return layout, graphics
 end
 
+-- UI functions
+function all_off_except(outp,inp)
+    if inp == 0 then
+        debug("inp did indeed  == 0")
+        for i=1, input_count do
+            Controls["input_".. i .. "-output_" .. outp].Boolean = false
+        end
+    else
+        debug("oh fuck")
+        for i=1, input_count do
+            Controls["input_".. i .. "-output_" .. outp].Boolean = i == inp
+        end
+    end
+end
+
+function follow_toggles(outp)
+    for i=1, input_count do
+      if Controls["input_".. i .. "-output_" .. outp].Boolean then
+        Controls["output_"..outp].String = i
+        debug("follow toggles function:",Controls["output_"..outp].String)
+      end
+    end
+end
+
+function toggle_press(outp,inp)
+    if Controls["input_".. tostring(inp) .. "-output_" .. tostring(outp)].Boolean then
+        all_off_except(outp,inp)
+        follow_toggles(outp)
+        debug("Input " .. inp .. " to output ".. outp .. "!")
+    else
+        local bool_list = 0
+        for i=1, input_count do
+            if Controls["input_".. i .. "-output_" .. outp].Boolean then
+                bool_list = bool_list + 1
+            end
+        end
+        if bool_list == 0 then
+            Controls["output_"..outp].String = 0
+            debug("Output ".. outp .. " off!")
+        end
+    end
+    --send Extron command
+end
+
+-----------------------------------------------------------------------
 if Controls then
     -- Local Structure for holding State
     Extron = {
@@ -537,6 +582,31 @@ if Controls then
         end
     end
 
+
+    for i=1, output_count do
+        Controls["output_"..i].EventHandler = function()
+            --send_crestron(Controls.output_integers[i].Value,i)
+            local new_value = math.tointeger(Controls["output_"..i].String)
+            debug("this is output " ..Controls["output_"..i].String)
+            if new_value ~= 0 then
+                Controls["input_" .. new_value ..  "-output_" .. i].Boolean = true
+            end
+            debug(new_value)
+            all_off_except(i, new_value)
+        end
+    end
+
+
+    for i=1, output_count do
+        for p=1, input_count do
+            Controls["input_".. p .. "-output_" .. i].EventHandler = function()
+                debug("sending to functions:"..tostring(i)..tostring(p))
+                toggle_press(i,math.tointeger(p))
+            end
+        end
+    end
+
+    --[[
     -- Loop through all Controls and setup Event Handlers
     for k, v in pairs(Controls) do
         -- Setup anything with "Source..."
@@ -558,4 +628,5 @@ if Controls then
             end
         end
     end
+    ]]--
 end
