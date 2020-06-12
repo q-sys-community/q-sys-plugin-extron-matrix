@@ -370,12 +370,10 @@ end
 -- UI functions
 function all_off_except(outp,inp)
     if inp == 0 then
-        debug("inp did indeed  == 0")
         for i=1, input_count do
             Controls["input_".. i .. "-output_" .. outp].Boolean = false
         end
     else
-        debug("oh fuck")
         for i=1, input_count do
             Controls["input_".. i .. "-output_" .. outp].Boolean = i == inp
         end
@@ -386,7 +384,6 @@ function follow_toggles(outp)
     for i=1, input_count do
       if Controls["input_".. i .. "-output_" .. outp].Boolean then
         Controls["output_"..outp].String = i
-        debug("follow toggles function:",Controls["output_"..outp].String)
       end
     end
 end
@@ -408,10 +405,14 @@ function toggle_press(outp,inp)
             debug("Output ".. outp .. " off!")
         end
     end
-    --send Extron command
+    tie_command(inp,outp)
 end
 
------------------------------------------------------------------------
+function tie_command(inp,outp)
+    -- Potentially add an if statement if a toggle for audio link is implemented
+    fnSend(inp.."*"..outp.."!")
+end
+
 if Controls then
     -- Local Structure for holding State
     Extron = {
@@ -551,21 +552,27 @@ if Controls then
                 fnSend(string.char(27) .. "LS" .. string.char(10))
             elseif line:sub(1, 5) == "Inf01" then
                 Controls.Model.String = line:sub(7, -1)
-            elseif line:sub(1, 2) == "In" then
+            elseif line:sub(1,3) == "Out" then
+                print(line:match(%d+))
+                if line:sub(-3,-1) == "All" then
+                    debug("All")
+                elseif line:sub(-3,-1) == "Vid" then
+                    debug("Vid")
+                elseif line:sub(-3,-1) == "Aud" then
+                    debug("Aud")
+                end
+            elseif line:sub(1, 2) == "In" then ---------------------------------not sure if this is needed
                 Controls.SourceActiveVal.Value = line:sub(3, 3)
                 for i = 1, MaxSources do
                     Controls["SourceActive"][i].Value = (Controls.SourceActiveVal.Value == i)
-                end
+                end ---------------------------------------------------------------------------------------
             elseif line:sub(1, 5) == "Ver01" then
                 Controls.FirmwareVersion.String = line:sub(7, -1)
             elseif line:sub(1, 3) == "Sig" then
                 -- Split up the Signals
                 for p, data in ipairs(split(line:sub(4, -3), " ")) do
-                    Controls["SourceSignal"][p].Value = (data == "1")
+                    Controls["SourceSignal " .. p].Value = (data == "1")
                 end
-
-            -- Output Status is last digit
-            --Controls.VideoOutputSignal.Boolean = (line:sub(12, 12) == "1")
             end
             -- Get New Line
             line = conn:ReadLine(TcpSocket.EOL.Any)
@@ -582,51 +589,23 @@ if Controls then
         end
     end
 
-
+    -- Loop through all Controls and setup Event Handlers
     for i=1, output_count do
         Controls["output_"..i].EventHandler = function()
-            --send_crestron(Controls.output_integers[i].Value,i)
             local new_value = math.tointeger(Controls["output_"..i].String)
-            debug("this is output " ..Controls["output_"..i].String)
             if new_value ~= 0 then
                 Controls["input_" .. new_value ..  "-output_" .. i].Boolean = true
             end
-            debug(new_value)
             all_off_except(i, new_value)
+            tie_command(inp,outp)
         end
     end
-
 
     for i=1, output_count do
         for p=1, input_count do
             Controls["input_".. p .. "-output_" .. i].EventHandler = function()
-                debug("sending to functions:"..tostring(i)..tostring(p))
                 toggle_press(i,math.tointeger(p))
             end
         end
     end
-
-    --[[
-    -- Loop through all Controls and setup Event Handlers
-    for k, v in pairs(Controls) do
-        -- Setup anything with "Source..."
-        if k == "SourceSelectVal" then
-            v.EventHandler = function(changedControl)
-                -- Debug Out
-                debug("Switch " .. changedControl.Value)
-                -- Send command
-                fnSend(math.tointeger(changedControl.Value) .. "!")
-            end
-        elseif k == "SourceSelectBtn" then
-            for s = 1, MaxSources do
-                v[s].EventHandler = function(changedControl)
-                    -- Debug Out
-                    debug("Switch " .. s)
-                    -- Send command
-                    fnSend(math.tointeger(s) .. "!")
-                end
-            end
-        end
-    end
-    ]]--
 end
