@@ -41,6 +41,11 @@ function GetProperties()
             Name = "Debug",
             Type = "boolean",
             Value = "false"
+        },
+        {
+            Name = "Password",
+            Type = "string",
+            Value = ""
         }
     }
     return props
@@ -533,6 +538,9 @@ if Controls then
         while (line ~= nil) do
             -- Print Line
             debug(line)
+            if line == "Password:" then
+                conn:Write(password.."\r")
+            end
             if line:sub(1, 3) == "Pno" then
                 Controls.PartNo.String = line:sub(4, -1)
                 timerComms:Stop()
@@ -587,8 +595,9 @@ if Controls then
         else
             debug("IP Address Property Not Set")
         end
+        password = Properties["Password"].Value
     end
-
+    
     -- Loop through all Controls and setup Event Handlers
     for i=1, output_count do
         Controls["output_"..i].EventHandler = function()
