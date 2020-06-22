@@ -398,6 +398,7 @@ function toggle_press(outp,inp)
         all_off_except(outp,inp)
         follow_toggles(outp)
         debug("Input " .. inp .. " to output ".. outp .. "!")
+        tie_command(inp,outp)
     else
         local bool_list = 0
         for i=1, input_count do
@@ -408,9 +409,9 @@ function toggle_press(outp,inp)
         if bool_list == 0 then
             Controls["output_"..outp].String = 0
             debug("Output ".. outp .. " off!")
+            tie_command(0,outp)
         end
-    end
-    tie_command(inp,outp)
+    end   
 end
 
 function tie_command(inp,outp)
@@ -606,7 +607,7 @@ if Controls then
                 Controls["input_" .. new_value ..  "-output_" .. i].Boolean = true
             end
             all_off_except(i, new_value)
-            tie_command(inp,outp)
+            tie_command(new_value,i)
         end
     end
 
