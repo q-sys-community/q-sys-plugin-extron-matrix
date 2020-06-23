@@ -385,6 +385,7 @@ function all_off_except(outp,inp)
     end
 end
 
+--[[
 function follow_toggles(outp)
     for i=1, input_count do
       if Controls["input_".. i .. "-output_" .. outp].Boolean then
@@ -413,6 +414,7 @@ function toggle_press(outp,inp)
         end
     end   
 end
+]]
 
 function tie_command(inp,outp)
     -- Potentially add an if statement if a toggle for audio link is implemented
@@ -485,15 +487,9 @@ if Controls then
     -- Setup Utility Callbacks as required
     conn.Connected = function(conn)
         debug("TCP socket is Connected")
-        -- Clear States (Not pretty, but works for now)
-        Controls["SourceSignal"][1].Value = false
-        Controls["SourceSignal"][2].Value = false
-        Controls["SourceSignal"][3].Value = false
-        Controls["SourceSignal"][4].Value = false
-        Controls["SourceSignal"][5].Value = false
-        Controls["SourceSignal"][6].Value = false
-        Controls["SourceSignal"][7].Value = false
-        Controls["SourceSignal"][8].Value = false
+        for i=1, input_count do
+            Controls["SourceSignal"][i].Value = false
+        end
         -- Set a timer to wait for connection to establish
         Timer.CallAfter(fnInit, 1)
     end
@@ -541,8 +537,9 @@ if Controls then
             debug(line)
             if line == "Password:" then
                 conn:Write(password.."\r")
-            end
-            if line:sub(1, 3) == "Pno" then
+            elseif line:sub(1,5) == "Login" then
+                fnInit()
+            elseif line:sub(1, 3) == "Pno" then
                 Controls.PartNo.String = line:sub(4, -1)
                 timerComms:Stop()
                 if Controls.Online then -- Check for when developing in a Control Script block
@@ -562,7 +559,15 @@ if Controls then
             elseif line:sub(1, 5) == "Inf01" then
                 Controls.Model.String = line:sub(7, -1)
             elseif line:sub(1,3) == "Out" then
-                print(line:match("%d+"))
+                local outp,inp = string.match(line, 'Out(%d+) In(%d+)')              
+                Controls["output_"..outp].String = inp
+                for i=1, input_count do
+                    Controls["input_".. i .. "-output_" .. outp].Boolean = false
+                end
+                if inp ~= "0" then
+                    Controls["input_".. inp .. "-output_" .. outp].Boolean = true
+                end               
+                --[[ -------------------------------------------------------Use this if we start routing video and audio separately
                 if line:sub(-3,-1) == "All" then
                     debug("All")
                 elseif line:sub(-3,-1) == "Vid" then
@@ -570,11 +575,7 @@ if Controls then
                 elseif line:sub(-3,-1) == "Aud" then
                     debug("Aud")
                 end
-            elseif line:sub(1, 2) == "In" then ---------------------------------not sure if this is needed
-                Controls.SourceActiveVal.Value = line:sub(3, 3)
-                for i = 1, MaxSources do
-                    Controls["SourceActive"][i].Value = (Controls.SourceActiveVal.Value == i)
-                end ---------------------------------------------------------------------------------------
+                ]]--
             elseif line:sub(1, 5) == "Ver01" then
                 Controls.FirmwareVersion.String = line:sub(7, -1)
             elseif line:sub(1, 3) == "Sig" then
@@ -602,19 +603,19 @@ if Controls then
     -- Loop through all Controls and setup Event Handlers
     for i=1, output_count do
         Controls["output_"..i].EventHandler = function()
-            local new_value = math.tointeger(Controls["output_"..i].String)
-            if new_value ~= 0 then
-                Controls["input_" .. new_value ..  "-output_" .. i].Boolean = true
-            end
-            all_off_except(i, new_value)
-            tie_command(new_value,i)
+            tie_command(Controls["output_"..i].String,i)
         end
     end
 
     for i=1, output_count do
         for p=1, input_count do
             Controls["input_".. p .. "-output_" .. i].EventHandler = function()
-                toggle_press(i,math.tointeger(p))
+                if Controls["input_".. p .. "-output_" .. i].Boolean then
+                    Controls["output_"..i].String = tostring(p)
+                else
+                    Controls["output_"..i].String = "0"
+                end
+                tie_command(Controls["output_"..i].String,i)
             end
         end
     end
