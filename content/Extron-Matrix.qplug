@@ -455,9 +455,9 @@ if Controls then
             fnSend(i.."&")
         end
         if props["Model"].Value == "DXP 42 HD 4K PLUS" then
-            fnSend("OLS")
-        else
             fnSend(string.char(27) .. "OLS" .. string.char(10))
+        else          
+            fnSend("OLS")
         end
     end
 
@@ -547,6 +547,12 @@ if Controls then
                     debug("Aud")
                 end
                 ]]--
+            elseif string.find(line, "In%d+ All") ~= nil then
+                local inp = string.match(line, 'In(%d+) All')
+                print(inp .. " is inp")
+                for i=1, output_count do
+                    matrix_feedback(inp,i)
+                end
             elseif line:sub(1,5) == "Frq00" then
                 debug("signal status line")
             elseif line:sub(1, 5) == "Ver01" then
