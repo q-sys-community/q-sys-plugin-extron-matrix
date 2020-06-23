@@ -372,49 +372,15 @@ function GetControlLayout(props)
     return layout, graphics
 end
 
--- UI functions
-function all_off_except(outp,inp)
-    if inp == 0 then
-        for i=1, input_count do
-            Controls["input_".. i .. "-output_" .. outp].Boolean = false
-        end
-    else
-        for i=1, input_count do
-            Controls["input_".. i .. "-output_" .. outp].Boolean = i == inp
-        end
-    end
-end
-
---[[
-function follow_toggles(outp)
+function matrix_feedback(inp,outp)
+    Controls["output_"..outp].String = inp
     for i=1, input_count do
-      if Controls["input_".. i .. "-output_" .. outp].Boolean then
-        Controls["output_"..outp].String = i
-      end
+        Controls["input_".. i .. "-output_" .. outp].Boolean = false
+    end
+    if inp ~= "0" then
+        Controls["input_".. inp .. "-output_" .. outp].Boolean = true
     end
 end
-
-function toggle_press(outp,inp)
-    if Controls["input_".. tostring(inp) .. "-output_" .. tostring(outp)].Boolean then
-        all_off_except(outp,inp)
-        follow_toggles(outp)
-        debug("Input " .. inp .. " to output ".. outp .. "!")
-        tie_command(inp,outp)
-    else
-        local bool_list = 0
-        for i=1, input_count do
-            if Controls["input_".. i .. "-output_" .. outp].Boolean then
-                bool_list = bool_list + 1
-            end
-        end
-        if bool_list == 0 then
-            Controls["output_"..outp].String = 0
-            debug("Output ".. outp .. " off!")
-            tie_command(0,outp)
-        end
-    end   
-end
-]]
 
 function tie_command(inp,outp)
     -- Potentially add an if statement if a toggle for audio link is implemented
@@ -482,6 +448,17 @@ if Controls then
     function fnInit()
         -- Set Verbose Mode to full comms
         fnSend(string.char(27) .. "3CV" .. string.char(10))
+        for i=1, output_count do
+            fnSend(i.."!")
+        end
+        for i=1, output_count do
+            fnSend(i.."&")
+        end
+        if props["Model"].Value == "DXP 42 HD 4K PLUS" then
+            fnSend("OLS")
+        else
+            fnSend(string.char(27) .. "OLS" .. string.char(10))
+        end
     end
 
     -- Setup Utility Callbacks as required
@@ -560,13 +537,7 @@ if Controls then
                 Controls.Model.String = line:sub(7, -1)
             elseif line:sub(1,3) == "Out" then
                 local outp,inp = string.match(line, 'Out(%d+) In(%d+)')              
-                Controls["output_"..outp].String = inp
-                for i=1, input_count do
-                    Controls["input_".. i .. "-output_" .. outp].Boolean = false
-                end
-                if inp ~= "0" then
-                    Controls["input_".. inp .. "-output_" .. outp].Boolean = true
-                end               
+                matrix_feedback(inp,outp)          
                 --[[ -------------------------------------------------------Use this if we start routing video and audio separately
                 if line:sub(-3,-1) == "All" then
                     debug("All")
@@ -576,6 +547,8 @@ if Controls then
                     debug("Aud")
                 end
                 ]]--
+            elseif line:sub(1,5) == "Frq00" then
+                debug("signal status line")
             elseif line:sub(1, 5) == "Ver01" then
                 Controls.FirmwareVersion.String = line:sub(7, -1)
             elseif line:sub(1, 3) == "Sig" then
