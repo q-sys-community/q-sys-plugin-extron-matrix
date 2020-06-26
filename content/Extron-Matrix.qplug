@@ -38,14 +38,14 @@ function GetProperties()
             Value = "DXP 42 HD 4K PLUS"
         },
         {
-            Name = "Debug",
-            Type = "boolean",
-            Value = "false"
-        },
-        {
             Name = "Password",
             Type = "string",
             Value = ""
+        },
+        {
+            Name = "Debug",
+            Type = "boolean",
+            Value = "false"
         }
     }
     return props
@@ -339,9 +339,6 @@ function GetControlLayout(props)
         Size = {100, 20}
     }
     -- Matrix crosspoints
-
-
-
     for i=1, output_count do -- For each output
         layout["output_"..i] = {
             PrettyName = "Output " .. i .. "~Select",
@@ -456,7 +453,7 @@ if Controls then
         end
         --[[if props["Model"].Value == "DXP 42 HD 4K PLUS" then
             fnSend(string.char(27) .. "0LS" .. string.char(10))
-        else          
+        else
             fnSend("OLS")
         end]]
         fnSend("0LS")
