@@ -3,9 +3,9 @@
 --
 
 PluginInfo = {
-    Name = "Extron~Matrix (0.1.0.0-master)", -- The tilde here indicates folder structure in the Shematic Elements pane
-    Version = "0.1.0.0-master",
-    Id = "qsysc.extron.matrix.0.1.0.0-master", -- show this is just a unique id. Show some commented out 'fun' unique ids
+    Name = "Extron~Matrix (0.0.0.0-master)", -- The tilde here indicates folder structure in the Shematic Elements pane
+    Version = "0.0.0.0-master",
+    Id = "qsysc.extron.matrix.0.0.0.0-master", -- show this is just a unique id. Show some commented out 'fun' unique ids
     Description = "Control for Extron range of DXP HD 4K video matrices, including both PLUS and non-PLUS models",
     ShowDebug = true,
     Author = "Solo Works London"
