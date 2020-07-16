@@ -430,7 +430,8 @@ if Controls then
 
     function fnPoll()
         -- Poll the Info
-        fnSend("N")
+        --fnSend("N")
+        fnSend(string.char(27) .. "LS" .. string.char(10))
     end
 
     -- Data Sending Helper Function
@@ -554,7 +555,7 @@ if Controls then
                 debug("signal status line")
                 for i=1, input_count do
                     debug(line:sub(6+i,6+i))
-                    Controls["SourceSignal"][i].Value = line:sub(6+i,6+i) == 1
+                    Controls["SourceSignal"][i].Boolean = tonumber(line:sub(6+i,6+i)) == 1
                 end
             elseif line:sub(1, 5) == "Ver01" then
                 Controls.FirmwareVersion.String = line:sub(7, -1)
