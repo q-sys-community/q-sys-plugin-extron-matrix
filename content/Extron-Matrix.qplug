@@ -11,13 +11,19 @@ PluginInfo = {
     Author = "Solo Works London"
 }
 
+
 -- Once you've drawn your plugin in Designer, you can determine what colors you use a lot. Save yourself some time by putting them in a table, and then simply calling them later.
 local Colors = {
+    extron_blue = {31,79,162},
     White = {255, 255, 255},
     Black = {0, 0, 0},
     Red = {255, 0, 0},
     Green = {0, 255, 0}
 }
+
+function GetColor(props)
+    return Colors.extron_blue
+end
 
 input_count = 16
 output_count = 16
@@ -45,7 +51,7 @@ function GetProperties()
         {
             Name = "Debug",
             Type = "boolean",
-            Value = "false"
+            Value = "true"
         }
     }
     return props
@@ -463,9 +469,6 @@ if Controls then
     -- Setup Utility Callbacks as required
     conn.Connected = function(conn)
         debug("TCP socket is Connected")
-        for i=1, input_count do
-            Controls["SourceSignal"][i].Value = false
-        end
         -- Set a timer to wait for connection to establish
         Timer.CallAfter(fnInit, 1)
     end
@@ -495,7 +498,6 @@ if Controls then
             Controls.IPAddress.String = Extron.Host .. ":" .. Extron.Port
         end
     end
-
     local function split(str, delim)
         local result = {}
         for part in str:gmatch("[^" .. delim .. "]+") do
@@ -503,7 +505,6 @@ if Controls then
         end
         return result
     end
-
     -- Setup Data Callbacks as required
     conn.Data = function(conn)
         -- Read out lines from the buffer
@@ -530,8 +531,6 @@ if Controls then
                 fnSend("!")
                 -- Start Polling
                 fnPoll()
-                -- get Initial Signal State
-                fnSend(string.char(27) .. "LS" .. string.char(10))
             elseif line:sub(1, 5) == "Inf01" then
                 Controls.Model.String = line:sub(7, -1)
             elseif line:sub(1,3) == "Out" then
@@ -569,7 +568,6 @@ if Controls then
             line = conn:ReadLine(TcpSocket.EOL.Any)
         end
     end
-
     -- Set IP address from Properties if present
     if Properties then
         if Properties["IP Address"].Value ~= "" then
@@ -580,14 +578,12 @@ if Controls then
         end
         password = Properties["Password"].Value
     end
-    
     -- Loop through all Controls and setup Event Handlers
     for i=1, output_count do
         Controls["output_"..i].EventHandler = function()
             tie_command(Controls["output_"..i].String,i)
         end
     end
-
     for i=1, output_count do
         for p=1, input_count do
             Controls["input_".. p .. "-output_" .. i].EventHandler = function()
