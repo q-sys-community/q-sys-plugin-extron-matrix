@@ -359,7 +359,7 @@ function GetControlLayout(props)
             Size = btn_size
         }
         layout["video_mute_"..i] = {
-            PrettyName = "Video Mute " .. i,
+            PrettyName = "Video Mute~Video Mute " .. i,
             Style = "Button",
             Legend = "Mute",
             Color = {255,0,0},
