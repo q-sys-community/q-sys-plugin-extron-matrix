@@ -11,7 +11,6 @@ PluginInfo = {
     Author = "Solo Works London"
 }
 
-
 -- Once you've drawn your plugin in Designer, you can determine what colors you use a lot. Save yourself some time by putting them in a table, and then simply calling them later.
 local Colors = {
     extron_blue = {31,79,162},
@@ -47,11 +46,6 @@ function GetProperties()
             Name = "Password",
             Type = "string",
             Value = ""
-        },
-        {
-            Name = "Debug",
-            Type = "boolean",
-            Value = "true"
         }
     }
     return props
@@ -74,7 +68,7 @@ function GetControls(props)
     ctls = {
         -- System Pins
         {
-            Name = "Online",
+            Name = "online",
             ControlType = "Indicator",
             IndicatorType = "Led",
             PinStyle = "Output",
@@ -82,7 +76,7 @@ function GetControls(props)
             UserPin = true
         },
         {
-            Name = "IPAddress",
+            Name = "ip_address",
             ControlType = "Indicator",
             IndicatorType = "Text",
             PinStyle = "Both",
@@ -90,7 +84,7 @@ function GetControls(props)
             UserPin = true
         },
         {
-            Name = "Model",
+            Name = "model",
             ControlType = "Indicator",
             IndicatorType = "Text",
             PinStyle = "Output",
@@ -98,7 +92,7 @@ function GetControls(props)
             UserPin = true
         },
         {
-            Name = "PartNo",
+            Name = "part_no",
             ControlType = "Indicator",
             IndicatorType = "Text",
             PinStyle = "Output",
@@ -106,7 +100,7 @@ function GetControls(props)
             UserPin = true
         },
         {
-            Name = "FirmwareVersion",
+            Name = "firmware_version",
             ControlType = "Indicator",
             IndicatorType = "Text",
             PinStyle = "Output",
@@ -114,7 +108,7 @@ function GetControls(props)
             UserPin = true
         },
         {
-			Name = "Temperature",
+			Name = "temperature",
 			ControlType = "Knob",
 			ControlUnit = "Integer",
 			PinStyle = "Output",
@@ -125,7 +119,7 @@ function GetControls(props)
 		},
         -- Input Ports - Signal Presence
         {
-            Name = "SourceSignal",
+            Name = "input_signal",
             ControlType = "Indicator",
             IndicatorType = "Led",
             PinStyle = "Output",
@@ -137,7 +131,6 @@ function GetControls(props)
          table.insert(ctls, {
             Name = "output_"..i,
             ControlType = "Text",
-            --IndicatorType = "Text",
             PinStyle = "Both",
             UserPin = true
         })
@@ -175,7 +168,6 @@ end
 function GetControlLayout(props)
     local layout = {}
 
-    --Choices = {"DXP 42 HD 4K PLUS", "DXP 44 HD 4K (PLUS)", "DXP 84 HD 4K (PLUS)", "DXP 88 HD 4K (PLUS)", "DXP 168 HD 4K (PLUS)","DXP 1616 HD 4K (PLUS)"},
     if props["Model"].Value == "DXP 42 HD 4K PLUS" then
         input_count, output_count = 4,2
     elseif props["Model"].Value == "DXP 44 HD 4K (PLUS)" then
@@ -311,38 +303,38 @@ function GetControlLayout(props)
         })
     end
     -- System
-    layout["Online"] = {
+    layout["online"] = {
         PrettyName = "System~Online",
         Style = "Indicator",
         Color = {0, 255, 0},
         Position = {100, 00},
         Size = {20, 20}
     }
-    layout["IPAddress"] = {
+    layout["ip_address"] = {
         PrettyName = "System~IP Address",
         Style = "TextBox",
         Position = {100, 20},
         Size = {100, 20}
     }
-    layout["Model"] = {
+    layout["model"] = {
         PrettyName = "System~Model Name",
         Style = "Text",
         Position = {100, 40},
         Size = {100, 20}
     }
-    layout["PartNo"] = {
+    layout["part_no"] = {
         PrettyName = "System~Part Number",
         Style = "Text",
         Position = {100, 60},
         Size = {100, 20}
     }
-    layout["FirmwareVersion"] = {
+    layout["firmware_version"] = {
         PrettyName = "System~Firmware Version",
         Style = "Text",
         Position = {100, 80},
         Size = {100, 20}
     }
-    layout["Temperature"] = {
+    layout["temperature"] = {
         PrettyName = "System~Temperature",
         Style = "Text",
         Color = {223, 0, 36},
@@ -377,12 +369,12 @@ function GetControlLayout(props)
         end
     end
     for i=1, input_count do
-        layout["SourceSignal " .. i] = {
+        layout["input_signal " .. i] = {
             PrettyName = string.format("Signal Presence~Source %02i", i),
             Style = "Indicator",
             Color = {0, 255, 0},
             Position = {(matrix_groupbox_position[1] + 4), 192 + ((i+0.5) * btn_size[2] )},
-            Size = {24, 24}
+            Size = {btn_size[2], btn_size[2]}
         }
     end
     return layout, graphics
@@ -398,8 +390,7 @@ function matrix_feedback(inp,outp)
     end
 end
 
-function tie_command(inp,outp)
-    -- Potentially add an if statement if a toggle for audio link is implemented
+function tie_command(inp,outp) -- Potentially add an if statement if a toggle for audio link is implemented
     fnSend(inp.."*"..outp.."!")
 end
 
@@ -411,12 +402,6 @@ if Controls then
         Rx = ""
     }
 
-    -- Easy Debug Out
-    function debug(s)
-        if Properties["Debug"].Value == true then
-            print(s)
-        end
-    end
     -- Build TCP Client
     conn = TcpSocket.New()
     conn.ReadTimeout = 0
@@ -427,8 +412,8 @@ if Controls then
     timerComms = Timer.New()
     timerComms.EventHandler = function(timer)
         timer:Stop()
-        Controls.Online.Boolean = false
-        debug("Connection Timed Out")
+        Controls.online.Boolean = false
+        print("Connection Timed Out")
         conn:Disconnect()
         fnConnect()
     end
@@ -456,7 +441,7 @@ if Controls then
     -- Data Sending Helper Function
     function fnSend(cmd)
         -- Send to device
-        debug("-->Extron::" .. cmd)
+        print("-->Extron::" .. cmd)
         conn:Write(cmd)
         -- Reset Polling
         fnInitPoll(true)
@@ -471,8 +456,9 @@ if Controls then
         for i=1, output_count do
             fnSend(i.."&")
         end
-        --[[if props["Model"].Value == "DXP 42 HD 4K PLUS" then
+        --[[if props["Model"].Value == "DXP 42 HD 4K PLUS" then -- HAVEN'T TESTED AGAINST DXP 42!!!
             fnSend(string.char(27) .. "0LS" .. string.char(10))
+            fnSend(string.char(27) .. "LS" .. string.char(10)) --test this if first fails?
         else
             fnSend("OLS")
         end]]
@@ -482,34 +468,34 @@ if Controls then
 
     -- Setup Utility Callbacks as required
     conn.Connected = function(conn)
-        debug("TCP socket is Connected")
+        print("TCP socket is Connected")
         -- Set a timer to wait for connection to establish
         Timer.CallAfter(fnInit, 1)
     end
     conn.Reconnect = function(conn)
-        debug("TCP socket is Reconnecting")
+        print("TCP socket is Reconnecting")
     end
     conn.Closed = function(conn)
-        debug("TCP socket was closed by the remote end")
+        print("TCP socket was closed by the remote end")
         fnInitPoll(false)
     end
     conn.Error = function(conn, err)
-        debug("TCP socket had an error ::")
-        debug(err)
+        print("TCP socket had an error ::")
+        print(err)
     end
     conn.Timeout = function(conn, err)
-        debug("TCP socket had an timeout ::")
-        debug(err)
+        print("TCP socket had an timeout ::")
+        print(err)
     end
 
     -- Helper Function - Open TCP Connection
     function fnConnect()
         -- Open Connection
         conn:Connect(Extron.Host, Extron.Port)
-        debug("TCP socket is Connecting")
+        print("TCP socket is Connecting")
         -- Set IP address value
-        if Controls.IPAddress then
-            Controls.IPAddress.String = Extron.Host .. ":" .. Extron.Port
+        if Controls.ip_address then
+            Controls.ip_address.String = Extron.Host .. ":" .. Extron.Port
         end
     end
     local function split(str, delim)
@@ -525,16 +511,16 @@ if Controls then
         line = conn:ReadLine(TcpSocket.EOL.Any)
         while (line ~= nil) do
             -- Print Line
-            debug(line)
+            print(line)
             if line == "Password:" then
                 conn:Write(password.."\r")
             elseif line:sub(1,5) == "Login" then
                 fnInit()
             elseif line:sub(1, 3) == "Pno" then
-                Controls.PartNo.String = line:sub(4, -1)
+                Controls.part_no.String = line:sub(4, -1)
                 timerComms:Stop()
-                if Controls.Online then -- Check for when developing in a Control Script block
-                    Controls.Online.Boolean = true
+                if Controls.online then -- Check for when developing in a Control Script block
+                    Controls.online.Boolean = true
                 end
                 timerComms:Start(30)
             elseif line:sub(1, 3) == "Vrb" then
@@ -546,17 +532,19 @@ if Controls then
                 -- Start Polling
                 fnPoll()
             elseif line:sub(1, 5) == "Inf01" then
-                Controls.Model.String = line:sub(7, -1)
+                Controls.model.String = line:sub(7, -1)
+            elseif line:sub(1, 5) == "Ver01" then
+                Controls.firmware_version.String = line:sub(7, -1)
             elseif line:sub(1,3) == "Out" then
                 local outp,inp = string.match(line, 'Out(%d+) In(%d+)')
                 matrix_feedback(inp,outp)
                 --[[ --Use this if we start routing video and audio separately
                 if line:sub(-3,-1) == "All" then
-                    debug("All")
+                    print("All")
                 elseif line:sub(-3,-1) == "Vid" then
-                    debug("Vid")
+                    print("Vid")
                 elseif line:sub(-3,-1) == "Aud" then
-                    debug("Aud")
+                    print("Aud")
                 end
                 ]]--
             elseif string.find(line, "In%d+ All") ~= nil then
@@ -565,22 +553,20 @@ if Controls then
                     matrix_feedback(inp,i)
                 end
             elseif line:sub(1,5) == "Frq00" then
-                debug("signal status line")
+                print("signal status line")
                 for i=1, input_count do
-                    debug(line:sub(6+i,6+i))
-                    Controls["SourceSignal"][i].Boolean = tonumber(line:sub(6+i,6+i)) == 1
+                    print(line:sub(6+i,6+i))
+                    Controls["input_signal"][i].Boolean = tonumber(line:sub(6+i,6+i)) == 1
                 end
             elseif line:sub(1,3) == "Mut" then
                 for i=1, output_count do
-                    debug(line:sub(3+i,3+i))
+                    print(line:sub(3+i,3+i))
                     Controls["video_mute_"..i].Boolean = tonumber(line:sub(3+i,3+i)) == 1
                 end
-            elseif line:sub(1, 5) == "Ver01" then
-                Controls.FirmwareVersion.String = line:sub(7, -1)
             elseif line:sub(1, 3) == "Sig" then
                 -- Split up the Signals
                 for p, data in ipairs(split(line:sub(4, -3), " ")) do
-                    Controls["SourceSignal " .. p].Value = (data == "1")
+                    Controls["input_signal " .. p].Value = (data == "1")
                 end
             elseif line:sub(1, 3) == "Vmt" then
                 local outp,mute_status = string.match(line, "Vmt(%d+)*(%d+)")
@@ -596,7 +582,7 @@ if Controls then
             Extron.Host = Properties["IP Address"].Value
             fnConnect()
         else
-            debug("IP Address Property Not Set")
+            print("IP Address Property Not Set")
         end
         password = Properties["Password"].Value
     end
