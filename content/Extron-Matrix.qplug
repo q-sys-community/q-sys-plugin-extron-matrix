@@ -182,24 +182,34 @@ function GetControlLayout(props)
         input_count, output_count = 16,16
     end
 
-    local matrix_groupbox_position = {0,144}
-    local matrix_groupbox_size = {224,200}
+    local title_size = {224,32}
     local btn_size = {32,24}
-
-    matrix_groupbox_size[1] = 72 + (output_count * btn_size[1])
-    matrix_groupbox_size[2] = 88 + (input_count * btn_size[2])
+    local matrix_groupbox_position = {0, 9*btn_size[2]}
+    local matrix_groupbox_size = {72 + (output_count * btn_size[1]), 16 + (3*btn_size[2]) + (input_count * btn_size[2])}
 
     graphics = {
         {
-            Type = "GroupBox", -- This is the overall groupbox that will give the plugin a more 'contained' look
-            Text = "Info",
+            Type = "Header",
+            Text = "Extron Matrix",
+            HTextAlign = "Center",
+            Color = Colors.extron_blue,
+            FontSize = 16,
+            --StrokeColor = Colors.Black,
+            --StrokeWidth = 1,
+            Position = {0, 0},
+            Size = title_size
+        },
+        {
+            Type = "GroupBox",
+            Text = "Status",
             HTextAlign = "Left",
             Fill = Colors.White,
             CornerRadius = 8,
-            StrokeColor = Colors.Black,
+            StrokeColor = Colors.extron_blue,
+            Color = Colors.extron_blue,
             StrokeWidth = 1,
-            Position = {0, 0},
-            Size = {224, 128}
+            Position = {0,title_size[2]},
+            Size = {title_size[1], 7*btn_size[2]}
         },
         {
             Type = "Text",
@@ -209,8 +219,8 @@ function GetControlLayout(props)
             FontStyle = "Bold",
             HTextAlign = "Right",
             Color = Colors.Black,
-            Position = {0, 0},
-            Size = {100, 20}
+            Position = {0, title_size[2]+(0.5*btn_size[2])},
+            Size = {3*btn_size[1], btn_size[2]}
         },
         {
             Type = "Text",
@@ -220,8 +230,8 @@ function GetControlLayout(props)
             FontStyle = "Bold",
             HTextAlign = "Right",
             Color = Colors.Black,
-            Position = {0, 20},
-            Size = {100, 20}
+            Position = {0, title_size[2]+(1.5*btn_size[2])},
+            Size = {3*btn_size[1], btn_size[2]}
         },
         {
             Type = "Text",
@@ -231,8 +241,8 @@ function GetControlLayout(props)
             FontStyle = "Bold",
             HTextAlign = "Right",
             Color = Colors.Black,
-            Position = {0, 40},
-            Size = {100, 20}
+            Position = {0, title_size[2]+(2.5*btn_size[2])},
+            Size = {3*btn_size[1], btn_size[2]}
         },
         {
             Type = "Text",
@@ -242,19 +252,19 @@ function GetControlLayout(props)
             FontStyle = "Bold",
             HTextAlign = "Right",
             Color = Colors.Black,
-            Position = {0, 60},
-            Size = {100, 20}
+            Position = {0, title_size[2]+(3.5*btn_size[2])},
+            Size = {3*btn_size[1], btn_size[2]}
         },
         {
             Type = "Text",
-            Text = "Software:",
+            Text = "Firmware:",
             Font = "Roboto",
             FontSize = 12,
             FontStyle = "Bold",
             HTextAlign = "Right",
             Color = Colors.Black,
-            Position = {0, 80},
-            Size = {100, 20}
+            Position = {0, title_size[2]+(4.5*btn_size[2])},
+            Size = {3*btn_size[1], btn_size[2]}
         },
         {
             Type = "Text",
@@ -264,8 +274,8 @@ function GetControlLayout(props)
             FontStyle = "Bold",
             HTextAlign = "Right",
             Color = Colors.Black,
-            Position = {0, 100},
-            Size = {100, 20}
+            Position = {0, title_size[2]+(5.5*btn_size[2])},
+            Size = {3*btn_size[1], btn_size[2]}
         },
         {
             Type = "GroupBox",
@@ -273,7 +283,8 @@ function GetControlLayout(props)
             HTextAlign = "Left",
             Fill = Colors.White,
             CornerRadius = 8,
-            StrokeColor = Colors.Black,
+            StrokeColor = Colors.extron_blue,
+            Color = Colors.extron_blue,
             StrokeWidth = 1,
             Position = matrix_groupbox_position,
             Size = matrix_groupbox_size
@@ -307,39 +318,39 @@ function GetControlLayout(props)
         PrettyName = "System~Online",
         Style = "Indicator",
         Color = {0, 255, 0},
-        Position = {100, 00},
-        Size = {20, 20}
+        Position = {3*btn_size[1], title_size[2]+(0.5*btn_size[2])},
+        Size = {btn_size[2], btn_size[2]}
     }
     layout["ip_address"] = {
         PrettyName = "System~IP Address",
         Style = "TextBox",
-        Position = {100, 20},
-        Size = {100, 20}
+        Position = {3*btn_size[1], title_size[2]+(1.5*btn_size[2])},
+        Size = {3*btn_size[1], btn_size[2]}
     }
     layout["model"] = {
         PrettyName = "System~Model Name",
         Style = "Text",
-        Position = {100, 40},
-        Size = {100, 20}
+        Position = {3*btn_size[1], title_size[2]+(2.5*btn_size[2])},
+        Size = {3*btn_size[1], btn_size[2]}
     }
     layout["part_no"] = {
         PrettyName = "System~Part Number",
         Style = "Text",
-        Position = {100, 60},
-        Size = {100, 20}
+        Position = {3*btn_size[1], title_size[2]+(3.5*btn_size[2])},
+        Size = {3*btn_size[1], btn_size[2]}
     }
     layout["firmware_version"] = {
         PrettyName = "System~Firmware Version",
         Style = "Text",
-        Position = {100, 80},
-        Size = {100, 20}
+        Position = {3*btn_size[1], title_size[2]+(4.5*btn_size[2])},
+        Size = {3*btn_size[1], btn_size[2]}
     }
     layout["temperature"] = {
         PrettyName = "System~Temperature",
         Style = "Text",
         Color = {223, 0, 36},
-        Position = {100, 100},
-        Size = {100, 20}
+        Position = {3*btn_size[1], title_size[2]+(5.5*btn_size[2])},
+        Size = {3*btn_size[1], btn_size[2]}
     }
     -- Matrix crosspoints
     for i=1, output_count do -- For each output
@@ -363,7 +374,7 @@ function GetControlLayout(props)
                 PrettyName = "Output " .. i .. "~In".. s .. " -> Out" .. i,
                 Style = "Button",
                 Legend = tostring(s),
-                Position = {btn_size[1] + (i * btn_size[1]), 192 + (0.5*btn_size[2]) + (s * btn_size[2])},
+                Position = {btn_size[1] + (i * btn_size[1]), matrix_groupbox_position[2] + (2.5*btn_size[2] + (s*btn_size[2]))},
                 Size = btn_size
             }
         end
@@ -373,7 +384,7 @@ function GetControlLayout(props)
             PrettyName = string.format("Signal Presence~Source %02i", i),
             Style = "Indicator",
             Color = {0, 255, 0},
-            Position = {(matrix_groupbox_position[1] + 4), 192 + ((i+0.5) * btn_size[2] )},
+            Position = {(matrix_groupbox_position[1] + (btn_size[1] - btn_size[2]) / 2), matrix_groupbox_position[2] + ((i+2.5) * btn_size[2] )},
             Size = {btn_size[2], btn_size[2]}
         }
     end
