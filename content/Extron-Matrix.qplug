@@ -184,7 +184,8 @@ function GetControlLayout(props)
 
     local title_size = {224,32}
     local btn_size = {32,24}
-    local matrix_groupbox_position = {0, 9*btn_size[2]}
+    local status_groupbox_size = {title_size[1], 7*btn_size[2]}
+    local matrix_groupbox_position = {0, title_size[2] + status_groupbox_size[2] + (0.5 * btn_size[2])}
     local matrix_groupbox_size = {72 + (output_count * btn_size[1]), 16 + (3*btn_size[2]) + (input_count * btn_size[2])}
 
     graphics = {
@@ -209,7 +210,7 @@ function GetControlLayout(props)
             Color = Colors.extron_blue,
             StrokeWidth = 1,
             Position = {0,title_size[2]},
-            Size = {title_size[1], 7*btn_size[2]}
+            Size = status_groupbox_size
         },
         {
             Type = "Text",
@@ -391,20 +392,6 @@ function GetControlLayout(props)
     return layout, graphics
 end
 
-function matrix_feedback(inp,outp)
-    Controls["output_"..outp].String = inp
-    for i=1, input_count do
-        Controls["input_".. i .. "-output_" .. outp].Boolean = false
-    end
-    if inp ~= "0" then
-        Controls["input_".. inp .. "-output_" .. outp].Boolean = true
-    end
-end
-
-function tie_command(inp,outp) -- Potentially add an if statement if a toggle for audio link is implemented
-    fnSend(inp.."*"..outp.."!")
-end
-
 if Controls then
     -- Local Structure for holding State
     Extron = {
@@ -477,6 +464,20 @@ if Controls then
         fnSend(string.char(27) .. "VM" .. string.char(10))
     end
 
+    function matrix_feedback(inp,outp)
+        Controls["output_"..outp].String = inp
+        for i=1, input_count do
+            Controls["input_".. i .. "-output_" .. outp].Boolean = false
+        end
+        if inp ~= "0" then
+            Controls["input_".. inp .. "-output_" .. outp].Boolean = true
+        end
+    end
+    
+    function tie_command(inp,outp) -- Potentially add an if statement if a toggle for audio link is implemented
+        fnSend(inp.."*"..outp.."!")
+    end
+    
     -- Setup Utility Callbacks as required
     conn.Connected = function(conn)
         print("TCP socket is Connected")
