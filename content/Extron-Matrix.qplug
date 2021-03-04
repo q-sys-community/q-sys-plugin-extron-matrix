@@ -13,7 +13,7 @@ PluginInfo = {
 
 -- Once you've drawn your plugin in Designer, you can determine what colors you use a lot. Save yourself some time by putting them in a table, and then simply calling them later.
 local Colors = {
-    extron_blue = {31,79,162},
+    extron_blue = {31, 79, 162},
     White = {255, 255, 255},
     Black = {0, 0, 0},
     Red = {255, 0, 0},
@@ -26,6 +26,7 @@ end
 
 input_count = 16
 output_count = 16
+
 -- We can let users determine some of the plugin properties by exposing them here
 -- While this function can be very useful, it is completely optional and not always needed.
 -- If no Properties are set here, only the position and fill properties of your plugin will show in the Properties pane
@@ -39,13 +40,25 @@ function GetProperties()
         {
             Name = "Model",
             Type = "enum",
-            Choices = {"DXP 42 HD 4K PLUS", "DXP 44 HD 4K (PLUS)", "DXP 84 HD 4K (PLUS)", "DXP 88 HD 4K (PLUS)", "DXP 168 HD 4K (PLUS)","DXP 1616 HD 4K (PLUS)"},
+            Choices = {
+                "DXP 42 HD 4K PLUS",
+                "DXP 44 HD 4K (PLUS)",
+                "DXP 84 HD 4K (PLUS)",
+                "DXP 88 HD 4K (PLUS)",
+                "DXP 168 HD 4K (PLUS)",
+                "DXP 1616 HD 4K (PLUS)"
+            },
             Value = "DXP 42 HD 4K PLUS"
         },
         {
             Name = "Password",
             Type = "string",
             Value = ""
+        },
+        {
+            Name = "Verbose",
+            Type = "boolean",
+            Value = false
         }
     }
     return props
@@ -79,7 +92,7 @@ function GetControls(props)
             Name = "ip_address",
             ControlType = "Indicator",
             IndicatorType = "Text",
-            PinStyle = "Both",
+            PinStyle = "Output",
             Count = 1,
             UserPin = true
         },
@@ -89,6 +102,18 @@ function GetControls(props)
             IndicatorType = "Text",
             PinStyle = "Output",
             Count = 1,
+            UserPin = true
+        },
+        {
+            Name = "device_name",
+            ControlType = "Text",
+            PinStyle = "Both",
+            UserPin = true
+        },
+        {
+            Name = "front_panel_lock",
+            ControlType = "Text",
+            PinStyle = "Both",
             UserPin = true
         },
         {
@@ -108,15 +133,35 @@ function GetControls(props)
             UserPin = true
         },
         {
-			Name = "temperature",
-			ControlType = "Knob",
-			ControlUnit = "Integer",
-			PinStyle = "Output",
-			Min = 0,
-			Max = 125,
-			Count = 1,
-			UserPin = true
-		},
+            Name = "power_supply",
+            ControlType = "Knob",
+            ControlUnit = "Float",
+            PinStyle = "Output",
+            Min = 0,
+            Max = 500,
+            Count = 1,
+            UserPin = true
+        },
+        {
+            Name = "fan_speed",
+            ControlType = "Knob",
+            ControlUnit = "Integer",
+            PinStyle = "Output",
+            Min = 0,
+            Max = 9000,
+            Count = 1,
+            UserPin = true
+        },
+        {
+            Name = "temperature",
+            ControlType = "Knob",
+            ControlUnit = "Float",
+            PinStyle = "Output",
+            Min = 0,
+            Max = 128,
+            Count = 1,
+            UserPin = true
+        },
         -- Input Ports - Signal Presence
         {
             Name = "input_signal",
@@ -125,30 +170,39 @@ function GetControls(props)
             PinStyle = "Output",
             Count = input_count,
             UserPin = true
-        },
+        }
     }
-    for i=1, output_count do
-         table.insert(ctls, {
-            Name = "output_"..i,
-            ControlType = "Text",
-            PinStyle = "Both",
-            UserPin = true
-        })
-        table.insert(ctls, {
-            Name = "video_mute_"..i,
-            ControlType = "Button",
-            ButtonType = "Toggle",
-            PinStyle = "Both",
-            UserPin = true
-        })
-        for s=1, input_count do
-            table.insert(ctls, {
-                Name = "input_".. s .. "-output_" .. i,
+    for i = 1, output_count do
+        table.insert(
+            ctls,
+            {
+                Name = "output_" .. i,
+                ControlType = "Text",
+                PinStyle = "Both",
+                UserPin = true
+            }
+        )
+        table.insert(
+            ctls,
+            {
+                Name = "video_mute_" .. i,
                 ControlType = "Button",
                 ButtonType = "Toggle",
                 PinStyle = "Both",
                 UserPin = true
-            })
+            }
+        )
+        for s = 1, input_count do
+            table.insert(
+                ctls,
+                {
+                    Name = "input_" .. s .. "-output_" .. i,
+                    ControlType = "Button",
+                    ButtonType = "Toggle",
+                    PinStyle = "Both",
+                    UserPin = true
+                }
+            )
         end
     end
     return ctls
@@ -169,24 +223,31 @@ function GetControlLayout(props)
     local layout = {}
 
     if props["Model"].Value == "DXP 42 HD 4K PLUS" then
-        input_count, output_count = 4,2
+        input_count, output_count = 4, 2
     elseif props["Model"].Value == "DXP 44 HD 4K (PLUS)" then
-        input_count, output_count = 4,4
+        input_count, output_count = 4, 4
     elseif props["Model"].Value == "DXP 84 HD 4K (PLUS)" then
-        input_count, output_count = 8,4
+        input_count, output_count = 8, 4
     elseif props["Model"].Value == "DXP 88 HD 4K (PLUS)" then
-        input_count, output_count = 8,8
+        input_count, output_count = 8, 8
     elseif props["Model"].Value == "DXP 168 HD 4K (PLUS)" then
-        input_count, output_count = 16,8
+        input_count, output_count = 16, 8
     elseif props["Model"].Value == "DXP 1616 HD 4K (PLUS)" then
-        input_count, output_count = 16,16
+        input_count, output_count = 16, 16
     end
 
-    local title_size = {224,32}
-    local btn_size = {32,24}
-    local status_groupbox_size = {title_size[1], 7*btn_size[2]}
+    local title_size = {224, 32}
+    local btn_size = {32, 24}
+    if props["Verbose"].Value then
+        status_groupbox_size = {title_size[1], 12 * btn_size[2]}
+    else
+        status_groupbox_size = {title_size[1], 6 * btn_size[2]}
+    end
     local matrix_groupbox_position = {0, title_size[2] + status_groupbox_size[2] + (0.5 * btn_size[2])}
-    local matrix_groupbox_size = {72 + (output_count * btn_size[1]), 16 + (3*btn_size[2]) + (input_count * btn_size[2])}
+    local matrix_groupbox_size = {
+        72 + (output_count * btn_size[1]),
+        16 + (3 * btn_size[2]) + (input_count * btn_size[2])
+    }
 
     graphics = {
         {
@@ -195,8 +256,6 @@ function GetControlLayout(props)
             HTextAlign = "Center",
             Color = Colors.extron_blue,
             FontSize = 16,
-            --StrokeColor = Colors.Black,
-            --StrokeWidth = 1,
             Position = {0, 0},
             Size = title_size
         },
@@ -209,7 +268,7 @@ function GetControlLayout(props)
             StrokeColor = Colors.extron_blue,
             Color = Colors.extron_blue,
             StrokeWidth = 1,
-            Position = {0,title_size[2]},
+            Position = {0, title_size[2]},
             Size = status_groupbox_size
         },
         {
@@ -220,8 +279,8 @@ function GetControlLayout(props)
             FontStyle = "Bold",
             HTextAlign = "Right",
             Color = Colors.Black,
-            Position = {0, title_size[2]+(0.5*btn_size[2])},
-            Size = {3*btn_size[1], btn_size[2]}
+            Position = {0, title_size[2] + (0.5 * btn_size[2])},
+            Size = {3 * btn_size[1], btn_size[2]}
         },
         {
             Type = "Text",
@@ -231,8 +290,8 @@ function GetControlLayout(props)
             FontStyle = "Bold",
             HTextAlign = "Right",
             Color = Colors.Black,
-            Position = {0, title_size[2]+(1.5*btn_size[2])},
-            Size = {3*btn_size[1], btn_size[2]}
+            Position = {0, title_size[2] + (1.5 * btn_size[2])},
+            Size = {3 * btn_size[1], btn_size[2]}
         },
         {
             Type = "Text",
@@ -242,41 +301,30 @@ function GetControlLayout(props)
             FontStyle = "Bold",
             HTextAlign = "Right",
             Color = Colors.Black,
-            Position = {0, title_size[2]+(2.5*btn_size[2])},
-            Size = {3*btn_size[1], btn_size[2]}
+            Position = {0, title_size[2] + (2.5 * btn_size[2])},
+            Size = {3 * btn_size[1], btn_size[2]}
         },
         {
             Type = "Text",
-            Text = "Part Number:",
+            Text = "Device Name:",
             Font = "Roboto",
             FontSize = 12,
             FontStyle = "Bold",
             HTextAlign = "Right",
             Color = Colors.Black,
-            Position = {0, title_size[2]+(3.5*btn_size[2])},
-            Size = {3*btn_size[1], btn_size[2]}
+            Position = {0, title_size[2] + (3.5 * btn_size[2])},
+            Size = {3 * btn_size[1], btn_size[2]}
         },
         {
             Type = "Text",
-            Text = "Firmware:",
+            Text = "Front Panel Lock:",
             Font = "Roboto",
-            FontSize = 12,
+            FontSize = 11.5,
             FontStyle = "Bold",
             HTextAlign = "Right",
             Color = Colors.Black,
-            Position = {0, title_size[2]+(4.5*btn_size[2])},
-            Size = {3*btn_size[1], btn_size[2]}
-        },
-        {
-            Type = "Text",
-            Text = "Temp(°C):",
-            Font = "Roboto",
-            FontSize = 12,
-            FontStyle = "Bold",
-            HTextAlign = "Right",
-            Color = Colors.Black,
-            Position = {0, title_size[2]+(5.5*btn_size[2])},
-            Size = {3*btn_size[1], btn_size[2]}
+            Position = {0, title_size[2] + (4.5 * btn_size[2])},
+            Size = {3 * btn_size[1], btn_size[2]}
         },
         {
             Type = "GroupBox",
@@ -294,98 +342,213 @@ function GetControlLayout(props)
             Type = "Text",
             Text = "Signal",
             FontSize = 10,
-            Position = {matrix_groupbox_position[1], (matrix_groupbox_position[2] + (2.5*btn_size[2]))},
+            Position = {matrix_groupbox_position[1], (matrix_groupbox_position[2] + (2.5 * btn_size[2]))},
             Size = btn_size
         }
     }
-    for i=1, input_count do
-        table.insert(graphics, {
-            Type = "Text",
-            Text = "In" .. i,
-            Position = {(matrix_groupbox_position[1] + btn_size[1]), (matrix_groupbox_position[2] + (2.5*btn_size[2])) + (i * btn_size[2])},
-            Size = btn_size
-        })
+    for i = 1, input_count do
+        table.insert(
+            graphics,
+            {
+                Type = "Text",
+                Text = "In" .. i,
+                Position = {
+                    (matrix_groupbox_position[1] + btn_size[1]),
+                    (matrix_groupbox_position[2] + (2.5 * btn_size[2])) + (i * btn_size[2])
+                },
+                Size = btn_size
+            }
+        )
     end
-    for i=1, output_count do
-        table.insert(graphics, {
-            Type = "Text",
-            Text = "Out\r" .. i,
-            Position = {btn_size[1] + (i * btn_size[1]), (matrix_groupbox_position[2] + (1.5*btn_size[2]))},
-            Size = btn_size
-        })
+    for i = 1, output_count do
+        table.insert(
+            graphics,
+            {
+                Type = "Text",
+                Text = "Out\r" .. i,
+                Position = {btn_size[1] + (i * btn_size[1]), (matrix_groupbox_position[2] + (1.5 * btn_size[2]))},
+                Size = btn_size
+            }
+        )
+    end
+
+    if props["Verbose"].Value then
+        table.insert(
+            graphics,
+            {
+                Type = "Text",
+                Text = "Part Number:",
+                Font = "Roboto",
+                FontSize = 12,
+                FontStyle = "Bold",
+                HTextAlign = "Right",
+                Color = Colors.Black,
+                Position = {0, title_size[2] + (6.5 * btn_size[2])},
+                Size = {3 * btn_size[1], btn_size[2]}
+            }
+        )
+        table.insert(
+            graphics,
+            {
+                Type = "Text",
+                Text = "Firmware:",
+                Font = "Roboto",
+                FontSize = 12,
+                FontStyle = "Bold",
+                HTextAlign = "Right",
+                Color = Colors.Black,
+                Position = {0, title_size[2] + (7.5 * btn_size[2])},
+                Size = {3 * btn_size[1], btn_size[2]}
+            }
+        )
+        table.insert(
+            graphics,
+            {
+                Type = "Text",
+                Text = "Power Supply (V):",
+                Font = "Roboto",
+                FontSize = 11,
+                FontStyle = "Bold",
+                HTextAlign = "Right",
+                Color = Colors.Black,
+                Position = {0, title_size[2] + (8.5 * btn_size[2])},
+                Size = {3 * btn_size[1], btn_size[2]}
+            }
+        )
+        table.insert(
+            graphics,
+            {
+                Type = "Text",
+                Text = "Fan Speed (RPM):",
+                Font = "Roboto",
+                FontSize = 11,
+                FontStyle = "Bold",
+                HTextAlign = "Right",
+                Color = Colors.Black,
+                Position = {0, title_size[2] + (9.5 * btn_size[2])},
+                Size = {3 * btn_size[1], btn_size[2]}
+            }
+        )
+        table.insert(
+            graphics,
+            {
+                Type = "Text",
+                Text = "Temperature (°C):",
+                Font = "Roboto",
+                FontSize = 11,
+                FontStyle = "Bold",
+                HTextAlign = "Right",
+                Color = Colors.Black,
+                Position = {0, title_size[2] + (10.5 * btn_size[2])},
+                Size = {3 * btn_size[1], btn_size[2]}
+            }
+        )
+        layout["part_no"] = {
+            PrettyName = "System~Part Number",
+            Style = "Text",
+            Position = {3 * btn_size[1], title_size[2] + (6.5 * btn_size[2])},
+            Size = {3 * btn_size[1], btn_size[2]}
+        }
+        layout["firmware_version"] = {
+            PrettyName = "System~Firmware Version",
+            Style = "Text",
+            Position = {3 * btn_size[1], title_size[2] + (7.5 * btn_size[2])},
+            Size = {3 * btn_size[1], btn_size[2]}
+        }
+        layout["power_supply"] = {
+            PrettyName = "System~Power Supply",
+            Style = "Text",
+            IsReadOnly = true,
+            Position = {3 * btn_size[1], title_size[2] + (8.5 * btn_size[2])},
+            Size = {3 * btn_size[1], btn_size[2]}
+        }
+        layout["fan_speed"] = {
+            PrettyName = "System~Fan Speed",
+            Style = "Text",
+            IsReadOnly = true,
+            Position = {3 * btn_size[1], title_size[2] + (9.5 * btn_size[2])},
+            Size = {3 * btn_size[1], btn_size[2]}
+        }
+        layout["temperature"] = {
+            PrettyName = "System~Temperature",
+            Style = "Text",
+            IsReadOnly = true,
+            Color = {223, 0, 36},
+            Position = {3 * btn_size[1], title_size[2] + (10.5 * btn_size[2])},
+            Size = {3 * btn_size[1], btn_size[2]}
+        }
     end
     -- System
     layout["online"] = {
         PrettyName = "System~Online",
         Style = "Indicator",
         Color = {0, 255, 0},
-        Position = {3*btn_size[1], title_size[2]+(0.5*btn_size[2])},
+        Position = {3 * btn_size[1], title_size[2] + (0.5 * btn_size[2])},
         Size = {btn_size[2], btn_size[2]}
     }
     layout["ip_address"] = {
         PrettyName = "System~IP Address",
         Style = "TextBox",
-        Position = {3*btn_size[1], title_size[2]+(1.5*btn_size[2])},
-        Size = {3*btn_size[1], btn_size[2]}
+        Position = {3 * btn_size[1], title_size[2] + (1.5 * btn_size[2])},
+        Size = {3 * btn_size[1], btn_size[2]}
     }
     layout["model"] = {
         PrettyName = "System~Model Name",
         Style = "Text",
-        Position = {3*btn_size[1], title_size[2]+(2.5*btn_size[2])},
-        Size = {3*btn_size[1], btn_size[2]}
+        Position = {3 * btn_size[1], title_size[2] + (2.5 * btn_size[2])},
+        Size = {3 * btn_size[1], btn_size[2]}
     }
-    layout["part_no"] = {
-        PrettyName = "System~Part Number",
+    layout["device_name"] = {
+        PrettyName = "System~Device Name",
         Style = "Text",
-        Position = {3*btn_size[1], title_size[2]+(3.5*btn_size[2])},
-        Size = {3*btn_size[1], btn_size[2]}
+        Position = {3 * btn_size[1], title_size[2] + (3.5 * btn_size[2])},
+        Size = {3 * btn_size[1], btn_size[2]}
     }
-    layout["firmware_version"] = {
-        PrettyName = "System~Firmware Version",
-        Style = "Text",
-        Position = {3*btn_size[1], title_size[2]+(4.5*btn_size[2])},
-        Size = {3*btn_size[1], btn_size[2]}
-    }
-    layout["temperature"] = {
-        PrettyName = "System~Temperature",
-        Style = "Text",
-        Color = {223, 0, 36},
-        Position = {3*btn_size[1], title_size[2]+(5.5*btn_size[2])},
-        Size = {3*btn_size[1], btn_size[2]}
+    layout["front_panel_lock"] = {
+        PrettyName = "System~Front Panel Lock",
+        Style = "ComboBox",
+        Position = {3 * btn_size[1], title_size[2] + (4.5 * btn_size[2])},
+        Size = {3 * btn_size[1], btn_size[2]}
     }
     -- Matrix crosspoints
-    for i=1, output_count do -- For each output
-        layout["output_"..i] = {
+    for i = 1, output_count do -- For each output
+        layout["output_" .. i] = {
             PrettyName = "Output " .. i .. "~Select",
             Style = "Indicator",
             Color = {255, 255, 255},
-            Position = {btn_size[1] + (i * btn_size[1]), matrix_groupbox_position[2] + (2.5*btn_size[2])},
+            Position = {btn_size[1] + (i * btn_size[1]), matrix_groupbox_position[2] + (2.5 * btn_size[2])},
             Size = btn_size
         }
-        layout["video_mute_"..i] = {
+        layout["video_mute_" .. i] = {
             PrettyName = "Video Mute~Video Mute " .. i,
             Style = "Button",
             Legend = "Mute",
-            Color = {255,0,0},
-            Position = {btn_size[1] + (i * btn_size[1]), matrix_groupbox_position[2] + (0.5*btn_size[2])},
+            Color = {255, 0, 0},
+            Position = {btn_size[1] + (i * btn_size[1]), matrix_groupbox_position[2] + (0.5 * btn_size[2])},
             Size = btn_size
         }
-        for s=1, input_count do -- For each input
-            layout["input_".. s .. "-output_" .. i] = {
-                PrettyName = "Output " .. i .. "~In".. s .. " -> Out" .. i,
+        for s = 1, input_count do -- For each input
+            layout["input_" .. s .. "-output_" .. i] = {
+                PrettyName = "Output " .. i .. "~In" .. s .. " -> Out" .. i,
                 Style = "Button",
                 Legend = tostring(s),
-                Position = {btn_size[1] + (i * btn_size[1]), matrix_groupbox_position[2] + (2.5*btn_size[2] + (s*btn_size[2]))},
+                Position = {
+                    btn_size[1] + (i * btn_size[1]),
+                    matrix_groupbox_position[2] + (2.5 * btn_size[2] + (s * btn_size[2]))
+                },
                 Size = btn_size
             }
         end
     end
-    for i=1, input_count do
+    for i = 1, input_count do
         layout["input_signal " .. i] = {
             PrettyName = string.format("Signal Presence~Source %02i", i),
             Style = "Indicator",
             Color = {0, 255, 0},
-            Position = {(matrix_groupbox_position[1] + (btn_size[1] - btn_size[2]) / 2), matrix_groupbox_position[2] + ((i+2.5) * btn_size[2] )},
+            Position = {
+                (matrix_groupbox_position[1] + (btn_size[1] - btn_size[2]) / 2),
+                matrix_groupbox_position[2] + ((i + 2.5) * btn_size[2])
+            },
             Size = {btn_size[2], btn_size[2]}
         }
     end
@@ -393,6 +556,19 @@ function GetControlLayout(props)
 end
 
 if Controls then
+    if Properties["Model"].Value == "DXP 42 HD 4K PLUS" then
+        input_count, output_count = 4, 2
+    elseif Properties["Model"].Value == "DXP 44 HD 4K (PLUS)" then
+        input_count, output_count = 4, 4
+    elseif Properties["Model"].Value == "DXP 84 HD 4K (PLUS)" then
+        input_count, output_count = 8, 4
+    elseif Properties["Model"].Value == "DXP 88 HD 4K (PLUS)" then
+        input_count, output_count = 8, 8
+    elseif Properties["Model"].Value == "DXP 168 HD 4K (PLUS)" then
+        input_count, output_count = 16, 8
+    elseif Properties["Model"].Value == "DXP 1616 HD 4K (PLUS)" then
+        input_count, output_count = 16, 16
+    end
     -- Local Structure for holding State
     Extron = {
         Host = "",
@@ -432,8 +608,8 @@ if Controls then
 
     function fnPoll()
         -- Poll the Info
-        --fnSend("N")
-        fnSend(string.char(27) .. "LS" .. string.char(10))
+        fnSend("0LS")
+        fnSend("S")
     end
 
     -- Data Sending Helper Function
@@ -448,36 +624,37 @@ if Controls then
     function fnInit()
         -- Set Verbose Mode to full comms
         fnSend(string.char(27) .. "3CV" .. string.char(10))
-        for i=1, output_count do
-            fnSend(i.."!")
+        fnSend(string.char(27) .. "CN" .. string.char(10))
+        for i = 1, output_count do
+            fnSend(i .. "!")
         end
-        for i=1, output_count do
-            fnSend(i.."&")
+        for i = 1, output_count do
+            fnSend(i .. "&")
         end
         --[[if props["Model"].Value == "DXP 42 HD 4K PLUS" then -- HAVEN'T TESTED AGAINST DXP 42!!!
             fnSend(string.char(27) .. "0LS" .. string.char(10))
             fnSend(string.char(27) .. "LS" .. string.char(10)) --test this if first fails?
         else
-            fnSend("OLS")
+            fnSend("0LS")
         end]]
         fnSend("0LS")
         fnSend(string.char(27) .. "VM" .. string.char(10))
     end
 
-    function matrix_feedback(inp,outp)
-        Controls["output_"..outp].String = inp
-        for i=1, input_count do
-            Controls["input_".. i .. "-output_" .. outp].Boolean = false
+    function matrix_feedback(inp, outp)
+        Controls["output_" .. outp].String = inp
+        for i = 1, input_count do
+            Controls["input_" .. i .. "-output_" .. outp].Boolean = false
         end
         if inp ~= "0" then
-            Controls["input_".. inp .. "-output_" .. outp].Boolean = true
+            Controls["input_" .. inp .. "-output_" .. outp].Boolean = true
         end
     end
-    
-    function tie_command(inp,outp) -- Potentially add an if statement if a toggle for audio link is implemented
-        fnSend(inp.."*"..outp.."!")
+
+    function tie_command(inp, outp) -- Potentially add an if statement if a toggle for audio link is implemented
+        fnSend(inp .. "*" .. outp .. "!")
     end
-    
+
     -- Setup Utility Callbacks as required
     conn.Connected = function(conn)
         print("TCP socket is Connected")
@@ -525,8 +702,8 @@ if Controls then
             -- Print Line
             print(line)
             if line == "Password:" then
-                conn:Write(password.."\r")
-            elseif line:sub(1,5) == "Login" then
+                conn:Write(password .. "\r")
+            elseif line:sub(1, 5) == "Login" then
                 fnInit()
             elseif line:sub(1, 3) == "Pno" then
                 Controls.part_no.String = line:sub(4, -1)
@@ -541,15 +718,20 @@ if Controls then
                 fnSend("Q")
                 fnSend("1I")
                 fnSend("!")
+                fnSend("X")
                 -- Start Polling
                 fnPoll()
+            elseif line:sub(1, 5) == "Sts00" then
+                local pwr, temp, fan = string.match(line, "Sts00%*(%d+%.?%d+) (%d+%.?%d+) (%d+%.?%d+)")
+                Controls.power_supply.Value = pwr
+                Controls.temperature.Value = temp
+                Controls.fan_speed.Value = fan
             elseif line:sub(1, 5) == "Inf01" then
                 Controls.model.String = line:sub(7, -1)
             elseif line:sub(1, 5) == "Ver01" then
                 Controls.firmware_version.String = line:sub(7, -1)
-            elseif line:sub(1,3) == "Out" then
-                local outp,inp = string.match(line, 'Out(%d+) In(%d+)')
-                matrix_feedback(inp,outp)
+            elseif line:sub(1, 3) == "Out" then
+                --
                 --[[ --Use this if we start routing video and audio separately
                 if line:sub(-3,-1) == "All" then
                     print("All")
@@ -558,22 +740,21 @@ if Controls then
                 elseif line:sub(-3,-1) == "Aud" then
                     print("Aud")
                 end
-                ]]--
+                ]]
+                local outp, inp = string.match(line, "Out(%d+) In(%d+)")
+                matrix_feedback(inp, outp)
             elseif string.find(line, "In%d+ All") ~= nil then
-                local inp = string.match(line, 'In(%d+) All')
-                for i=1, output_count do
-                    matrix_feedback(inp,i)
+                local inp = string.match(line, "In(%d+) All")
+                for i = 1, output_count do
+                    matrix_feedback(inp, i)
                 end
-            elseif line:sub(1,5) == "Frq00" then
-                print("signal status line")
-                for i=1, input_count do
-                    print(line:sub(6+i,6+i))
-                    Controls["input_signal"][i].Boolean = tonumber(line:sub(6+i,6+i)) == 1
+            elseif line:sub(1, 5) == "Frq00" then
+                for i = 1, input_count do
+                    Controls["input_signal"][i].Boolean = tonumber(line:sub(6 + i, 6 + i)) == 1
                 end
-            elseif line:sub(1,3) == "Mut" then
-                for i=1, output_count do
-                    print(line:sub(3+i,3+i))
-                    Controls["video_mute_"..i].Boolean = tonumber(line:sub(3+i,3+i)) == 1
+            elseif line:sub(1, 3) == "Mut" then
+                for i = 1, output_count do
+                    Controls["video_mute_" .. i].Boolean = tonumber(line:sub(3 + i, 3 + i)) == 1
                 end
             elseif line:sub(1, 3) == "Sig" then
                 -- Split up the Signals
@@ -581,8 +762,21 @@ if Controls then
                     Controls["input_signal " .. p].Value = (data == "1")
                 end
             elseif line:sub(1, 3) == "Vmt" then
-                local outp,mute_status = string.match(line, "Vmt(%d+)*(%d+)")
-                Controls["video_mute_"..outp].Boolean = mute_status == "1"
+                local outp, mute_status = string.match(line, "Vmt(%d+)*(%d+)")
+                Controls["video_mute_" .. outp].Boolean = mute_status == "1"
+            elseif line:sub(1, 3) == "Ipn" then
+                Controls["device_name"].String = line:sub(5, -1)
+            elseif line:sub(1, 3) == "Exe" then
+                local lockout_mode = line:sub(4, 4) + 1
+                Controls["front_panel_lock"].String = Controls["front_panel_lock"].Choices[lockout_mode]
+            elseif line == "E01" then
+                print("Error: Invalid input channel (out of range)")
+            elseif line == "E06" then
+                print("Error: Invalid input during auto-input switching")
+            elseif line == "E10" then
+                print("Error: Invalid command")
+            elseif line == "E13" then
+                print("Error: Invalid value (out of range)")
             end
             -- Get New Line
             line = conn:ReadLine(TcpSocket.EOL.Any)
@@ -599,27 +793,38 @@ if Controls then
         password = Properties["Password"].Value
     end
     -- Loop through all Controls and setup Event Handlers
-    for i=1, output_count do
-        Controls["output_"..i].EventHandler = function()
-            tie_command(Controls["output_"..i].String,i)
-        end
-        Controls["video_mute_"..i].EventHandler = function()
-            if Controls["video_mute_"..i].Boolean then
-                fnSend(i .."*".. "1" .. "B")
-            else
-                fnSend(i .."*".. "0" .. "B")
+    Controls["device_name"].EventHandler = function()
+        fnSend(string.char(27) .. Controls["device_name"].String .. "CN" .. string.char(10))
+    end
+    Controls["front_panel_lock"].Choices = {"Unlocked", "Locked", "Partial"}
+    Controls["front_panel_lock"].EventHandler = function()
+        for k, v in ipairs(Controls["front_panel_lock"].Choices) do
+            if Controls["front_panel_lock"].String == v then
+                fnSend(tostring(k - 1) .. "X")
             end
         end
     end
-    for i=1, output_count do
-        for p=1, input_count do
-            Controls["input_".. p .. "-output_" .. i].EventHandler = function()
-                if Controls["input_".. p .. "-output_" .. i].Boolean then
-                    Controls["output_"..i].String = tostring(p)
+    for i = 1, output_count do
+        Controls["output_" .. i].EventHandler = function()
+            tie_command(Controls["output_" .. i].String, i)
+        end
+        Controls["video_mute_" .. i].EventHandler = function()
+            if Controls["video_mute_" .. i].Boolean then
+                fnSend(i .. "*" .. "1" .. "B")
+            else
+                fnSend(i .. "*" .. "0" .. "B")
+            end
+        end
+    end
+    for i = 1, output_count do
+        for p = 1, input_count do
+            Controls["input_" .. p .. "-output_" .. i].EventHandler = function()
+                if Controls["input_" .. p .. "-output_" .. i].Boolean then
+                    Controls["output_" .. i].String = tostring(p)
                 else
-                    Controls["output_"..i].String = "0"
+                    Controls["output_" .. i].String = "0"
                 end
-                tie_command(Controls["output_"..i].String,i)
+                tie_command(Controls["output_" .. i].String, i)
             end
         end
     end
