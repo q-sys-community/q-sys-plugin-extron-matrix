@@ -586,7 +586,6 @@ if Controls then
     timerComms = Timer.New()
     timerComms.EventHandler = function(timer)
         timer:Stop()
-        Controls.online.Boolean = false
         print("Connection Timed Out")
         conn:Disconnect()
         fnConnect()
@@ -657,6 +656,7 @@ if Controls then
 
     -- Setup Utility Callbacks as required
     conn.Connected = function(conn)
+        Controls.online.Boolean = true
         print("TCP socket is Connected")
         -- Set a timer to wait for connection to establish
         Timer.CallAfter(fnInit, 1)
@@ -665,6 +665,7 @@ if Controls then
         print("TCP socket is Reconnecting")
     end
     conn.Closed = function(conn)
+        Controls.online.Boolean = false
         print("TCP socket was closed by the remote end")
         fnInitPoll(false)
     end
@@ -673,6 +674,7 @@ if Controls then
         print(err)
     end
     conn.Timeout = function(conn, err)
+        Controls.online.Boolean = false
         print("TCP socket had an timeout ::")
         print(err)
     end
