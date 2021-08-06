@@ -1,4 +1,4 @@
-# Extron Switcher
+# Extron Matrix
 
 Plugin for Extron matrices via IP.
 
